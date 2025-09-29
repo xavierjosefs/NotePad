@@ -1,0 +1,21 @@
+{
+  "name": "notepad-api",
+  "version": "1.0.0",
+  "description": "Blog de notas",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:test": "node src/models/user.models.js"
+  },
+  "author": "Xavier Fernandez",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  }
+}
