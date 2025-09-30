@@ -8,7 +8,7 @@ app.use(express.json());
 app.post("/register", async (req, res) => {
   const { email, password } = req.body;
   try {
-    const id = await createUser(email, password); // <-- await
+    const id = await createUser(email, password);
     return res.status(201).json({ id });
   } catch (e) {
     const code = e.message === "EMAIL_TAKEN" ? 409 : 400;
