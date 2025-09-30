@@ -1,12 +1,19 @@
 import express from "express";
+import cors from "cors"
+import jwt from "jsonwebtoken"
+import cokieParser from "cookie-parser"
 import { createUser, changePassword, login } from "./models/user.models.js";
-import { error } from "console";
+import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+app.use(cookieParser());
 
 app.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body ?? {};
+  if (!email || !password) return res.status(400).json({ error: "INVALID_INPUT" });
+
   try {
     const id = await createUser(email, password);
     return res.status(201).json({ id });
@@ -17,17 +24,20 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body ?? {};
+  if (!email || !password) return res.status(400).json({ error: "INVALID_INPUT" });
+
   try {
     const user = await login(email, password);
     return res.status(200).json({ user });
   } catch (e) {
     const msg = e?.message ?? "INTERNAL_ERROR";
-    const code = msg === "EMAIL_NOT_FOUND" || "PASSWORD_INCORRECT" ? 401 : 500;
-
+    const code =
+      msg === "EMAIL_NOT_FOUND" || msg === "PASSWORD_INCORRECT" ? 401 : 500; // <-- FIX
     return res.status(code).json({ error: msg });
   }
 });
+
 
 app.post("/changepassword", async (req, res) => {
   const { email, newPassword } = req.body;

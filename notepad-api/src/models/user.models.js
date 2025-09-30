@@ -30,32 +30,28 @@ export const getUsersById = async (id) => {
 
 // Obtener crear usuario
 export const createUser = async (email, password) => {
-  try {
-    const normalizedEmail = email.trim().toLowerCase();
-    const search = await pool.query(`select id from users where email = $1`, [
-      normalizedEmail,
-    ]);
+  const normalizedEmail = email.trim().toLowerCase();
 
-    if (search.rowCount !== 0) {
-      console.log("EMAIL TAKEN");
-      return false;
-    } else {
-      const id = crypto.randomUUID();
-      const passwordHash = bcrypt.hashSync(password, 10);
-
-      const sql = `insert into users (id ,email, password_hash)
-                          values ($1, $2, $3)
-                          returning id`;
-      const params = [id, normalizedEmail, passwordHash];
-
-      const result = await pool.query(sql, params);
-
-      return result.rows[0].id;
-    }
-  } catch (err) {
-    console.error(err);
+  const search = await pool.query(
+    "select id from users where email = $1",
+    [normalizedEmail]
+  );
+  if (search.rowCount !== 0) {
+    throw new Error("EMAIL_TAKEN");
   }
+
+  const id = crypto.randomUUID();
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const sql = `insert into users (id, email, password_hash)
+               values ($1, $2, $3)
+               returning id`;
+  const params = [id, normalizedEmail, passwordHash];
+
+  const result = await pool.query(sql, params);
+  return result.rows[0].id;
 };
+
 
 export const login = async (email, password) => {
   try {

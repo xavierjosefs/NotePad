@@ -1,7 +1,6 @@
-import AuthPanel from "./AuthPanel";
-import AuthIllustration from "./AuthIllustration";
+import AuthPanel from "../molecules/AuthPanel";
 
-export default function AuthLayout() {
+export default function Login() {
   return (
     <main className="min-h-screen grid md:grid-cols-2 bg-white">
       {/* Columna izquierda: panel del formulario */}
