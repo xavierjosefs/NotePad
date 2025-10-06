@@ -1,6 +1,8 @@
+
 import RegisterPanel from "../molecules/RegisterPanel";
 
 export default function Register() {
+   
   return (
     <main className="min-h-screen grid md:grid-cols-2 bg-white">
       {/* Columna IZQUIERDA: ilustración (cubre todo) */}

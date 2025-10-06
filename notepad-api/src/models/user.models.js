@@ -57,7 +57,7 @@ export const login = async (email, password) => {
   try {
     const normalizedEmail = email.trim().toLowerCase();
     const { rows } = await pool.query(
-      `select id, email, password_hash from users where email = $1`,
+      `select * from users where email = $1`,
       [normalizedEmail]
     );
     if (rows.length === 0) throw new Error("EMAIL_NOT_FOUND");
@@ -66,7 +66,7 @@ export const login = async (email, password) => {
     const isValid = bcrypt.compareSync(password, user.password_hash);
     if (!isValid) throw new Error("PASSWORD_INCORRECT");
 
-    return { id: user.id, email: user.email };
+    return { user };
   } catch (err) {
     throw err;
   }

@@ -7,7 +7,11 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173"],
+  methods: ["POST", "GET"],
+  credentials: true
+}));
 app.use(cookieParser());
 
 app.post("/register", async (req, res) => {
@@ -15,8 +19,8 @@ app.post("/register", async (req, res) => {
   if (!email || !password) return res.status(400).json({ error: "INVALID_INPUT" });
 
   try {
-    const id = await createUser(email, password);
-    return res.status(201).json({ id });
+    const user = await createUser(email, password);
+    return res.status(201).json({user});
   } catch (e) {
     const code = e.message === "EMAIL_TAKEN" ? 409 : 400;
     return res.status(code).json({ error: e.message });
@@ -29,11 +33,15 @@ app.post("/login", async (req, res) => {
 
   try {
     const user = await login(email, password);
-    return res.status(200).json({ user });
+    const userId = user.id;
+    const userEmail = user.email;
+    const token = jwt.sign({userId, userEmail}, process.env.SECRET_KEY.toString(), {expiresIn: '1d'});
+    res.cookie('token', token)
+    return res.status(200).json({user });
   } catch (e) {
     const msg = e?.message ?? "INTERNAL_ERROR";
     const code =
-      msg === "EMAIL_NOT_FOUND" || msg === "PASSWORD_INCORRECT" ? 401 : 500; // <-- FIX
+      msg === "EMAIL_NOT_FOUND" || msg === "PASSWORD_INCORRECT" ? 401 : 500; 
     return res.status(code).json({ error: msg });
   }
 });
