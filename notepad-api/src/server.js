@@ -1,9 +1,10 @@
 import express from "express";
 import cors from "cors"
 import jwt from "jsonwebtoken"
-import cokieParser from "cookie-parser"
 import { createUser, changePassword, login } from "./models/user.models.js";
+import { getNotes } from "./models/note.models.js";
 import cookieParser from "cookie-parser";
+import { verifyToken } from "./middleware/verifyToken.js";
 
 const app = express();
 app.use(express.json());
@@ -33,9 +34,8 @@ app.post("/login", async (req, res) => {
 
   try {
     const user = await login(email, password);
-    const userId = user.id;
-    const userEmail = user.email;
-    const token = jwt.sign({userId, userEmail}, process.env.SECRET_KEY.toString(), {expiresIn: '1d'});
+    const token = jwt.sign({ id: user.user.id, email: user.user.email },process.env.SECRET_KEY.toString(),{ expiresIn: "1d" });
+    console.log(jwt.verify(token, process.env.SECRET_KEY.toString()));
     res.cookie('token', token)
     return res.status(200).json({user });
   } catch (e) {
@@ -49,7 +49,7 @@ app.post("/login", async (req, res) => {
 
 app.post("/changepassword", async (req, res) => {
   const { email, newPassword } = req.body;
-  console.log("BODY:", req.body); // debería mostrar { email, newPassword }
+  console.log("BODY:", req.body);
 
   try {
     const id = await changePassword(email, newPassword);
@@ -67,6 +67,23 @@ app.post("/changepassword", async (req, res) => {
     return res.status(code).json({ error: msg });
   }
 });
+
+app.get("/api/user/notes", verifyToken, async (req, res) => {
+  try {
+    console.log("Usuario autenticado:", req.user);
+
+    const { id } = req.user;
+    console.log(req.user)
+    const notes = await getNotes(id);
+    console.log("Notas encontradas:", notes);
+
+    return res.status(200).json({ notes });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "PROBLEM_LOADING_NOTES" });
+  }
+});
+
 
 app.use((req, res) => {
   res.status(404).json({

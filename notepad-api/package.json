@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "db:test": "node src/models/user.models.js"
+    "db:test": "node src/models/note.models.js"
   },
   "author": "Xavier Fernandez",
   "license": "ISC",
