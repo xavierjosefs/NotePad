@@ -2,9 +2,10 @@ import express from "express";
 import cors from "cors"
 import jwt from "jsonwebtoken"
 import { createUser, changePassword, login } from "./models/user.models.js";
-import { getNotes } from "./models/note.models.js";
+import { getNotes, createNote } from "./models/note.models.js";
 import cookieParser from "cookie-parser";
 import { verifyToken } from "./middleware/verifyToken.js";
+import { verify } from "crypto";
 
 const app = express();
 app.use(express.json());
@@ -35,9 +36,8 @@ app.post("/login", async (req, res) => {
   try {
     const user = await login(email, password);
     const token = jwt.sign({ id: user.user.id, email: user.user.email },process.env.SECRET_KEY.toString(),{ expiresIn: "1d" });
-    console.log(jwt.verify(token, process.env.SECRET_KEY.toString()));
     res.cookie('token', token)
-    return res.status(200).json({user });
+    return res.sendStatus(200);
   } catch (e) {
     const msg = e?.message ?? "INTERNAL_ERROR";
     const code =
@@ -49,7 +49,6 @@ app.post("/login", async (req, res) => {
 
 app.post("/changepassword", async (req, res) => {
   const { email, newPassword } = req.body;
-  console.log("BODY:", req.body);
 
   try {
     const id = await changePassword(email, newPassword);
@@ -68,18 +67,35 @@ app.post("/changepassword", async (req, res) => {
   }
 });
 
+app.post("/createnote", verifyToken, async (req,res) => {
+  try {
+    const  { id } = req.user;
+    const { title, content } = req.body;
+    await createNote(id, title, content);
+    return res.sendStatus(200);
+  } catch (e) {
+    const msg = e?.message ?? "INTERNAL_ERROR";
+    const code =
+      msg === "INVALID_ID"
+        ? 404
+        : msg === "INVALID_TITLE"
+        ? 406
+
+        : 500;
+    return res.status(code).json({ error: msg });
+  }
+  
+
+});
+
 app.get("/api/user/notes", verifyToken, async (req, res) => {
   try {
-    console.log("Usuario autenticado:", req.user);
 
     const { id } = req.user;
-    console.log(req.user)
     const notes = await getNotes(id);
-    console.log("Notas encontradas:", notes);
 
     return res.status(200).json({ notes });
   } catch (e) {
-    console.error(e);
     return res.status(500).json({ error: "PROBLEM_LOADING_NOTES" });
   }
 });
