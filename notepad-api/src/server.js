@@ -18,6 +18,7 @@ app.use(cors({
 app.use(cookieParser());
 
 app.post("/register", async (req, res) => {
+  
   const { email, password , name} = req.body ?? {};
   if (!email || !password || !name) return res.status(400).json({ error: "INVALID_INPUT" });
 
@@ -34,19 +35,33 @@ app.get("/", verifyUser, (req, res) => {
   return res.sendStatus(200)
 })
 
-app.get("/logout", (req, res) => {
-  res.clearCookie("token")
-  return res.sendStatus(200);
-})
+app.post("/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+  });
+
+  return res.status(200).json({ message: "Logout successful" });
+});
+
 
 app.post("/login", async (req, res) => {
+  
   const { email, password } = req.body ?? {};
   if (!email || !password) return res.status(400).json({ error: "INVALID_INPUT" });
 
   try {
     const user = await login(email, password);
-    const token = jwt.sign({ id: user.user.id, email: user.user.email },process.env.SECRET_KEY.toString(),{ expiresIn: "1d" });
-    res.cookie('token', token)
+    const token = jwt.sign({ id: user.user.id, email: user.user.email },process.env.SECRET_KEY.toString(),{ expiresIn: "15s" });
+    
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      maxAge: 15 * 1000,
+    });
+
     return res.sendStatus(200);
   } catch (e) {
     const msg = e?.message ?? "INTERNAL_ERROR";
