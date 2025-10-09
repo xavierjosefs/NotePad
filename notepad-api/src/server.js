@@ -6,7 +6,7 @@ import { getNotes, createNote } from "./models/note.models.js";
 import cookieParser from "cookie-parser";
 import { verifyToken } from "./middleware/verifyToken.js";
 import { verifyUser } from "./middleware/verifyUser.js";
-import { verify } from "crypto";
+
 
 const app = express();
 app.use(express.json());
@@ -32,6 +32,11 @@ app.post("/register", async (req, res) => {
 
 app.get("/", verifyUser, (req, res) => {
   return res.sendStatus(200)
+})
+
+app.get("/logout", (req, res) => {
+  res.clearCookie("token")
+  return res.sendStatus(200);
 })
 
 app.post("/login", async (req, res) => {

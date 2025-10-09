@@ -1,6 +1,8 @@
 import IconButton from "../atoms/IconButton";
 import Section from "./Section";
 import NavItem from "./NavItem";
+import axios from "axios";
+
 import { Search, Settings, Star, Trash2, Clock, Tag, Folder, LogOut } from "lucide-react";
 
 export default function Sidebar(props) {
@@ -8,6 +10,12 @@ export default function Sidebar(props) {
   const FOLDERS = props.folders || [
     {name:"2023",count:34},{name:"2022",count:36},{name:"2021",count:40},{name:"2020",count:23},{name:"2019",count:18}
   ];
+  const handleDelete = () => {
+    axios.get("http://localhost:8000/logout")
+    .then(res => {
+      location.reload(true);
+    }).catch(err => console.log(err))
+  }
 
   return (
     <aside className={"hidden lg:flex lg:w-72 xl:w-80 shrink-0 flex-col border-r border-neutral-200 bg-white/70 backdrop-blur " + (props.className || "")}>
@@ -28,7 +36,7 @@ export default function Sidebar(props) {
           <div className="text-sm font-semibold">{props.userName || "User Name"}</div>
           <div className="text-xs text-neutral-500 truncate">{props.userEmail || "user@mail.com"}</div>
         </div>
-        <IconButton className="ml-auto" aria-label="Logout" onClick={props.onLogout}>
+        <IconButton className="ml-auto" aria-label="Logout" onClick={handleDelete}>
           <LogOut size={16} />
         </IconButton>
       </div>
