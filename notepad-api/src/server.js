@@ -5,6 +5,7 @@ import { createUser, changePassword, login } from "./models/user.models.js";
 import { getNotes, createNote } from "./models/note.models.js";
 import cookieParser from "cookie-parser";
 import { verifyToken } from "./middleware/verifyToken.js";
+import { verifyUser } from "./middleware/verifyUser.js";
 import { verify } from "crypto";
 
 const app = express();
@@ -17,17 +18,21 @@ app.use(cors({
 app.use(cookieParser());
 
 app.post("/register", async (req, res) => {
-  const { email, password } = req.body ?? {};
-  if (!email || !password) return res.status(400).json({ error: "INVALID_INPUT" });
+  const { email, password , name} = req.body ?? {};
+  if (!email || !password || !name) return res.status(400).json({ error: "INVALID_INPUT" });
 
   try {
-    const user = await createUser(email, password);
+    const user = await createUser(email, password, name);
     return res.status(201).json({user});
   } catch (e) {
     const code = e.message === "EMAIL_TAKEN" ? 409 : 400;
     return res.status(code).json({ error: e.message });
   }
 });
+
+app.get("/", verifyUser, (req, res) => {
+  return res.sendStatus(200)
+})
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body ?? {};

@@ -29,8 +29,9 @@ export const getUsersById = async (id) => {
 };
 
 // Obtener crear usuario
-export const createUser = async (email, password) => {
+export const createUser = async (email, password, name) => {
   const normalizedEmail = email.trim().toLowerCase();
+  const normalizedName = name.trim();
 
   const search = await pool.query(
     "select id from users where email = $1",
@@ -43,10 +44,10 @@ export const createUser = async (email, password) => {
   const id = crypto.randomUUID();
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const sql = `insert into users (id, email, password_hash)
-               values ($1, $2, $3)
+  const sql = `insert into users (id, email, password_hash, full_name)
+               values ($1, $2, $3, $4)
                returning id`;
-  const params = [id, normalizedEmail, passwordHash];
+  const params = [id, normalizedEmail, passwordHash, normalizedName];
 
   const result = await pool.query(sql, params);
   return result.rows[0].id;
