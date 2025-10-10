@@ -42,8 +42,8 @@ export default function Sidebar(props) {
       </div>
 
       <Section title="QUICK LINKS">
-        <NavItem active onClick={props.onAllNotes}>All Notes <span className="ml-auto text-[11px] text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded md:mr-1">24</span></NavItem>
-        <NavItem icon={<Star size={16} className="text-amber-500" />} onClick={props.onFavorites}>Favorites <span className="ml-auto text-[11px] text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">24</span></NavItem>
+        <NavItem active onClick={props.onAllNotes}>All Notes <span className="ml-auto text-[11px] text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded md:mr-1">{props.noteLength || 0}</span></NavItem>
+        <NavItem icon={<Star size={16} className="text-amber-500" />} onClick={props.onFavorites}>Favorites <span className="ml-auto text-[11px] text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">{props.favCont}</span></NavItem>
         <NavItem icon={<Clock size={16} />} onClick={props.onArchived}>Archived</NavItem>
         <NavItem icon={<Trash2 size={16} />} onClick={props.onDeleted}>Recently Deleted</NavItem>
       </Section>

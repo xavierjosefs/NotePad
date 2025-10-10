@@ -1,6 +1,7 @@
 import { error } from "console";
 import { pool } from "../config/db.js";
 import crypto from "crypto";
+import { title } from "process";
 
 const validateTitle = async(user_id, title) => {
     const query = await pool.query(`select title from notes where user_id = $1 and title = $2` , [user_id, title]);
@@ -41,4 +42,23 @@ export const getNotes = async (user_id) => {
     throw err;
   }
 };
+
+//cambiar a favoritos
+export const toggleFavorite = async (userId, noteId) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE notes
+         SET favorite = NOT COALESCE(favorite, false)
+       WHERE id = $1 AND user_id = $2
+       RETURNING id, title, favorite`,
+      [noteId, userId]
+    );
+
+    if (rows.length === 0) throw new Error("NOTE_NOT_FOUND");
+    return rows[0];
+  } catch (err) {
+    throw err;
+  }
+};
+
 

@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors"
 import jwt from "jsonwebtoken"
-import { createUser, changePassword, login } from "./models/user.models.js";
-import { getNotes, createNote } from "./models/note.models.js";
+import { createUser, changePassword, login, loadProfile } from "./models/user.models.js";
+import { getNotes, createNote, toggleFavorite } from "./models/note.models.js";
 import cookieParser from "cookie-parser";
 import { verifyToken } from "./middleware/verifyToken.js";
 import { verifyUser } from "./middleware/verifyUser.js";
@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(cors({
   origin: ["http://localhost:5173"],
-  methods: ["POST", "GET"],
+  methods: ["POST", "GET", "PUT"],
   credentials: true
 }));
 app.use(cookieParser());
@@ -35,7 +35,7 @@ app.get("/", verifyUser, (req, res) => {
   return res.sendStatus(200)
 })
 
-app.post("/logout", (req, res) => {
+app.get("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     sameSite: "lax",
@@ -53,13 +53,13 @@ app.post("/login", async (req, res) => {
 
   try {
     const user = await login(email, password);
-    const token = jwt.sign({ id: user.user.id, email: user.user.email },process.env.SECRET_KEY.toString(),{ expiresIn: "15s" });
+    const token = jwt.sign({ id: user.user.id, email: user.user.email, name: user.user.name },process.env.SECRET_KEY.toString(),{ expiresIn: "15m" });
     
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",
       secure: false,
-      maxAge: 15 * 1000,
+      maxAge: 900 * 1000,
     });
 
     return res.sendStatus(200);
@@ -124,6 +124,38 @@ app.get("/api/user/notes", verifyToken, async (req, res) => {
     return res.status(500).json({ error: "PROBLEM_LOADING_NOTES" });
   }
 });
+
+app.put("/api/user/notes/favorite", verifyToken, async(req, res) => {
+  try {
+    const { id } = req.user;
+    const { noteId } = req.body ?? {};
+
+    await toggleFavorite(id, noteId)
+    return res.sendStatus(200);
+  } catch (e) {
+    const msg = e?.message ?? "INTERNAL_ERROR";
+    const code =
+      msg === "NOTE_NOT_FOUND"
+        ? 404
+        : 500;
+    return res.status(code).json({ error: msg });
+  }
+})
+
+app.get("/api/user/profile", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.user;
+    const profile = await loadProfile(id);
+    return res.status(201).json(profile)
+  } catch (e) {
+    const msg = e?.message ?? "INTERNAL_ERROR";
+    const code =
+      msg === "USER_NOT_FOUND"
+        ? 404
+        : 500;
+    return res.status(code).json({ error: msg });
+  }
+})
 
 
 app.use((req, res) => {

@@ -97,3 +97,15 @@ export const changePassword = async (email, newPassword) => {
     throw err;
   }
 };
+
+export const loadProfile = async (id) => {
+  try{
+    const result = await pool.query("select * from users where id = $1", [id])
+    if(result.rowCount === 0) {
+      throw new error("USER_NOT_FOUND");
+    }
+    return result.rows;
+  } catch(err) {
+    throw err
+  }
+}
