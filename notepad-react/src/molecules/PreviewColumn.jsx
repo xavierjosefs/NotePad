@@ -1,6 +1,6 @@
 import { useState } from "react";
 import IconButton from "../atoms/IconButton";
-import { Star, MoreHorizontal, Trash2, Edit3, Clock } from "lucide-react";
+import { Star, MoreHorizontal, Trash2, Edit3, Clock, TriangleAlert, ArchiveRestore } from "lucide-react";
 import ConfirmAction from "../molecules/ConfirmAction";
 import RenameNote from "../molecules/RenameNote";
 
@@ -96,11 +96,11 @@ export default function PreviewColumn(props) {
                   {props.activeSection === "deleted" && (
                     <>
                       <button onClick={() => openModal("restore")} className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100">
-                        ♻️ Restore
+                        <ArchiveRestore size={16} /> Restore
                       </button>
 
                       <button onClick={() => openModal("deletePermanent")} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
-                        💀 Delete Permanently
+                        <TriangleAlert size={16} /> Delete Permanently
                       </button>
                     </>
                   )}
