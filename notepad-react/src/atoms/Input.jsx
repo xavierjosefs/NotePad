@@ -5,7 +5,9 @@ export default function Input(props) {
       placeholder={props.placeholder}
       name={props.name}
       className={props.className}
+      value={props.value}
       onChange={props.onChange}
+      autoFocus={props.autoFocus}
     ></input>
   );
 }

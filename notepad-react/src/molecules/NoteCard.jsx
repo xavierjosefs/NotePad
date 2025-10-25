@@ -20,9 +20,6 @@ export default function NoteCard(props) {
         <div className="flex items-start gap-2">
           <div className="font-semibold text-neutral-900 truncate">{note.title}</div>
           {note.pin ? <Badge>📌 Pinned</Badge> : null}
-          <button className="ml-auto text-neutral-400 hover:text-neutral-600">
-            <MoreHorizontal size={18} />
-          </button>
         </div>
         <div className="text-sm text-neutral-500 truncate mt-0.5">{note.excerpt}</div>
         <div className="flex items-center gap-2 mt-3">

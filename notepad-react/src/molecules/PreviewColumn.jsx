@@ -17,9 +17,25 @@ export default function PreviewColumn(props) {
   const closeModal = () => setModalType(null);
 
   const handleConfirm = () => {
-    if (modalType === "delete") props.onDelete?.(note.id);
-    if (modalType === "archive") props.onArchive?.(note.id);
-    closeModal();
+    if (modalType === "delete"){
+      props.onDelete?.(note.id);
+      closeModal();
+    } 
+
+    if (modalType === "archive"){ 
+      props.onArchive?.(note.id);
+      closeModal();
+    }
+
+    if (modalType === "restore") {
+      props.onRestore?.(note.id);
+      closeModal();
+    }
+
+    if (modalType === "deletePermanent") {
+      props.onPermanentDelete?.(note.id);
+      closeModal();
+    }
   };
 
   if (!note) {
@@ -37,13 +53,17 @@ export default function PreviewColumn(props) {
           <div className="font-semibold">{note.title}</div>
 
           <div className="flex items-center gap-2">
-            <IconButton aria-label="Favorite" onClick={props.onFavorite}>
-              <Star
-                size={18}
-                className={note.favorite ? "text-amber-500" : "text-neutral-400"}
-                fill={note.favorite ? "currentColor" : "none"}
-              />
-            </IconButton>
+            {/* ⭐ Mostrar solo si NO estamos en "archived" */}
+            {props.activeSection !== "archived" && (
+              <IconButton aria-label="Favorite" onClick={props.onFavorite}>
+                <Star
+                  size={18}
+                  className={note.favorite ? "text-amber-500" : "text-neutral-400"}
+                  fill={note.favorite ? "currentColor" : "none"}
+                />
+              </IconButton>
+            )}
+
 
             {/* Menú simple */}
             <div className="relative">
@@ -53,15 +73,37 @@ export default function PreviewColumn(props) {
 
               {openMenu && (
                 <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl border border-gray-200 shadow-lg">
-                  <button onClick={() => openModal("rename")} className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100">
-                    <Edit3 size={16} /> Rename
-                  </button>
-                  <button onClick={() => openModal("archive")} className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100">
-                    <Clock size={16} /> Archive
-                  </button>
-                  <button onClick={() => openModal("delete")} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
-                    <Trash2 size={16} /> Delete
-                  </button>
+
+                  {/* Solo mostrar Rename / Archive / Delete si NO estamos en deleted */}
+                  {props.activeSection !== "deleted" && (
+                    <>
+                      <button onClick={() => openModal("rename")} className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100">
+                        <Edit3 size={16} /> Rename
+                      </button>
+
+                      <button onClick={() => openModal("archive")} className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100">
+                        <Clock size={16} />
+                        {props.activeSection === "archived" ? "Unarchive" : "Archive"}
+                      </button>
+
+                      <button onClick={() => openModal("delete")} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <Trash2 size={16} /> Delete
+                      </button>
+                    </>
+                  )}
+
+                  {/* Si estamos en Recently Deleted */}
+                  {props.activeSection === "deleted" && (
+                    <>
+                      <button onClick={() => openModal("restore")} className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100">
+                        ♻️ Restore
+                      </button>
+
+                      <button onClick={() => openModal("deletePermanent")} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+                        💀 Delete Permanently
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -89,16 +131,25 @@ export default function PreviewColumn(props) {
       {(modalType === "delete" || modalType === "archive") && (
         <ConfirmAction
           isOpen={true}
-          title={modalType === "delete" ? "Delete Note" : "Archive Note"}
+          title={
+            modalType === "delete"
+              ? "Delete Note"
+              : props.activeSection === "archived"
+              ? "Unarchive Note"
+              : "Archive Note"
+          }
           message={
             modalType === "delete"
               ? "Are you sure you want to delete this note? This action cannot be undone."
+              : props.activeSection === "archived"
+              ? "Do you want to unarchive this note? It will return to All Notes."
               : "Do you want to archive this note? You can restore it later."
           }
           onConfirm={handleConfirm}
           onCancel={closeModal}
         />
       )}
+
     </>
   );
 }

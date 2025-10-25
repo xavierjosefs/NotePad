@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors"
 import jwt from "jsonwebtoken"
 import { createUser, changePassword, login, loadProfile } from "./models/user.models.js";
-import { getNotes, createNote, toggleFavorite } from "./models/note.models.js";
+import { getNotes, createNote, toggleFavorite,getNotesFavorites, getNotesArchived,softDeleteNote, restoreDeletedNote, getDeletedNotes, archiveNote, changeNoteTitle } from "./models/note.models.js";
 import cookieParser from "cookie-parser";
 import { verifyToken } from "./middleware/verifyToken.js";
 import { verifyUser } from "./middleware/verifyUser.js";
@@ -11,8 +11,8 @@ import { verifyUser } from "./middleware/verifyUser.js";
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: ["http://localhost:5173"],
-  methods: ["POST", "GET", "PUT"],
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 app.use(cookieParser());
@@ -96,8 +96,8 @@ app.post("/createnote", verifyToken, async (req,res) => {
   try {
     const  { id } = req.user;
     const { title, content } = req.body;
-    await createNote(id, title, content);
-    return res.sendStatus(200);
+    const note = await createNote(id, title, content);
+    return res.status(201).json({ message: "Note created successfully", note });
   } catch (e) {
     const msg = e?.message ?? "INTERNAL_ERROR";
     const code =
@@ -142,6 +142,30 @@ app.put("/api/user/notes/favorite", verifyToken, async(req, res) => {
   }
 })
 
+app.get("/api/archived/notes", verifyToken, async (req,res) => {
+  try {
+
+    const { id } = req.user;
+    const archiNotes = await getNotesArchived(id);
+
+    return res.status(200).json({ archiNotes });
+  } catch (e) {
+    return res.status(500).json({ error: "PROBLEM_LOADING_NOTES" });
+  }
+})
+
+app.get("/api/favorite/notes", verifyToken, async (req,res) => {
+  try {
+
+    const { id } = req.user;
+    const favNotes = await getNotesFavorites(id);
+
+    return res.status(200).json({ favNotes });
+  } catch (e) {
+    return res.status(500).json({ error: "PROBLEM_LOADING_NOTES" });
+  }
+})
+
 app.get("/api/user/profile", verifyToken, async (req, res) => {
   try {
     const { id } = req.user;
@@ -156,6 +180,105 @@ app.get("/api/user/profile", verifyToken, async (req, res) => {
     return res.status(code).json({ error: msg });
   }
 })
+
+
+app.put("/api/user/notes/archived", verifyToken, async(req, res) => {
+  try {
+    const { noteId } = req.body ?? {};
+
+    console.log("📝 NoteID:", noteId);
+
+    await archiveNote(noteId)
+    return res.sendStatus(200);
+  } catch (e) {
+    const msg = e?.message ?? "INTERNAL_ERROR";
+    const code =
+      msg === "NOTE_NOT_FOUND"
+        ? 404
+        : 500;
+    return res.status(code).json({ error: msg });
+  }
+})
+
+app.put("/api/note/change-title", verifyToken, async (req, res) => {
+  try {
+    const { id: userId } = req.user || {};
+    const { noteId, newTitle } = req.body || {};
+
+    if (!userId) return res.status(401).json({ error: "NO_AUTH" });
+    if (!noteId || !newTitle || !newTitle.trim()) {
+      return res.status(400).json({ error: "INVALID_INPUT" });
+    }
+
+    const updated = await changeNoteTitle(userId, noteId, newTitle.trim());
+    if (!updated) return res.status(404).json({ error: "NOTE_NOT_FOUND" });
+
+    return res.status(200).json({ note: updated });
+  } catch (err) {
+    console.error("❌ /api/note/change-title error:", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+//notas eliminadas
+app.get("/api/deleted/notes", verifyToken, async (req, res) => {
+  try {
+    const { id: userId } = req.user || {};
+    const deletedNotes = await getDeletedNotes(userId);
+    res.status(200).json({ deletedNotes });
+  } catch (err) {
+    console.error("Error getting deleted notes:", err);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Soft delete
+app.put("/api/user/note/delete", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.user || {};
+    const { noteId } = req.body || {};
+
+    if (!noteId) return res.status(400).json({ error: "MISSING_NOTE_ID" });
+
+    const deleted = await softDeleteNote(id, noteId);
+    if (!deleted) return res.status(404).json({ error: "NOTE_NOT_FOUND" });
+
+    res.status(200).json({ deleted });
+  } catch (err) {
+    console.error("Error soft-deleting note:", err);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+//Restaurar una nota eliminada
+app.put("/api/note/restore", verifyToken, async (req, res) => {
+  try {
+    const { id: userId } = req.user || {};
+    const { noteId } = req.body || {};
+
+    const restored = await restoreDeletedNote(userId, noteId);
+    if (!restored) return res.status(404).json({ error: "NOTE_NOT_FOUND" });
+
+    res.status(200).json({ restored });
+  } catch (err) {
+    console.error("Error restoring note:", err);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Eliminar definitivamente
+app.delete("/api/note/permanent-delete", verifyToken, async (req, res) => {
+  try {
+    const { noteId } = req.body ?? {};
+    const result = await pool.query(`DELETE FROM notes WHERE id = $1`, [noteId]);
+    if (result.rowCount === 0) return res.status(404).json({ error: "NOTE_NOT_FOUND" });
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("Error deleting permanently:", err);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
 
 
 app.use((req, res) => {
