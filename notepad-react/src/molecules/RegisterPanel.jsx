@@ -20,7 +20,7 @@ export default function RegisterPanel({ card = false }) {
     const name = (fd.get("name") || "").toString().trim();
     const email = (fd.get("email") || "").toString().trim();
     const password = (fd.get("password") || "").toString();
-    const avatar_base64 = (fd.get("avatar_base64") || "").toString();
+    const avatar = (fd.get("avatar") || "").toString();
 
     if (!name || !email || !password) {
       alert("Please complete all required fields.");
@@ -31,7 +31,7 @@ export default function RegisterPanel({ card = false }) {
       const baseURL = "http://localhost:8000";
       const res = await axios.post(
         `${baseURL}/register`,
-        { name, email, password, avatar_base64 },
+        { name, email, password, avatar },
         { headers: { "Content-Type": "application/json" } }
       );
 

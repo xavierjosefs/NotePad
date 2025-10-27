@@ -29,7 +29,7 @@ export const getUsersById = async (id) => {
 };
 
 // Obtener crear usuario
-export const createUser = async (email, password, name, avatarBase64 = null) => {
+export const createUser = async (email, password, name, avatar = null) => {
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedName = name.trim();
 
@@ -43,7 +43,7 @@ export const createUser = async (email, password, name, avatarBase64 = null) => 
     INSERT INTO users (id, email, password_hash, full_name, avatar)
     VALUES ($1, $2, $3, $4, $5)
     RETURNING id`;
-  const params = [id, normalizedEmail, passwordHash, normalizedName, avatarBase64];
+  const params = [id, normalizedEmail, passwordHash, normalizedName, avatar];
 
   const result = await pool.query(sql, params);
   return result.rows[0].id;

@@ -2,12 +2,12 @@ import { useRef, useState } from "react";
 import { Upload, Camera } from "lucide-react";
 
 export default function AvatarPicker({
-  nameHidden = "avatar_base64",
+  nameHidden = "avatar",
   id = "avatar",
-  size = 112,              // 112px (h-28 w-28). Cambia si quieres más grande/pequeño
+  size = 112,             
   accept = "image/*",
-  maxSizeMB = 5,           // límite de tamaño en MB
-  initialValue = "",       // si quieres precargar un avatar (Base64 o URL)
+  maxSizeMB = 5,           
+  initialValue = "",      
   className = "",
 }) {
   const [preview, setPreview] = useState(initialValue || "");
