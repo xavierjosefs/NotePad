@@ -4,6 +4,7 @@ export default function Input(props) {
       type={props.type}
       placeholder={props.placeholder}
       name={props.name}
+      accept={props.accept}
       className={props.className}
       value={props.value}
       onChange={props.onChange}

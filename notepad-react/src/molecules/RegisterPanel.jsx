@@ -1,40 +1,41 @@
 import RegisterHeadline from "./RegisterHeadline";
-import NameForm from "./NameForm"
+import NameForm from "./NameForm";
 import EmailForm from "./EmailForm";
 import PasswordForm from "./PasswordForm";
-import axios from "axios";
 import RegisterPrimaryButton from "./RegisterPrimaryButton";
 import SignInOutlined from "./SignInOutlined";
+import AvatarPicker from "../molecules/AvatarPicker";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function RegisterPanel({ card = false }) {
-    const base = "w-full max-w-md space-y-4";
-    const cardStyles =
-      "rounded-2xl bg-white p-6 md:p-8 shadow-sm ring-1 ring-gray-200";
-    const navigate = useNavigate();
-    const handleSubmit = async (event) => {
-    event.preventDefault();
+  const base = "w-full max-w-md space-y-4";
+  const cardStyles = "rounded-2xl bg-white p-6 md:p-8 shadow-sm ring-1 ring-gray-200";
+  const navigate = useNavigate();
 
-    // 1) Leer valores del form (por 'name')
-    const fd = new FormData(event.currentTarget);
-    const email = fd.get("email");
-    const password = fd.get("password");
-    const name = fd.get("name");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
 
-    
-    if (!email || !password || !name) {
-      alert("Email and password are required");
+    const name = (fd.get("name") || "").toString().trim();
+    const email = (fd.get("email") || "").toString().trim();
+    const password = (fd.get("password") || "").toString();
+    const avatar_base64 = (fd.get("avatar_base64") || "").toString();
+
+    if (!name || !email || !password) {
+      alert("Please complete all required fields.");
       return;
     }
 
     try {
       const baseURL = "http://localhost:8000";
-      const res = await axios.post(`${baseURL}/register`, { email, password, name });
-      console.log(res);
-      if(res.status === 201){
-        navigate("/login")
-      }
+      const res = await axios.post(
+        `${baseURL}/register`,
+        { name, email, password, avatar_base64 },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
+      if (res.status === 201) navigate("/login");
     } catch (err) {
       const msg = err?.response?.data?.error ?? "INTERNAL_ERROR";
       alert(`Register failed: ${msg}`);
@@ -45,7 +46,10 @@ export default function RegisterPanel({ card = false }) {
     <section className={card ? `${base} ${cardStyles}` : base}>
       <form onSubmit={handleSubmit}>
         <RegisterHeadline />
-        <NameForm/>
+        <div className="flex justify-center">
+          <AvatarPicker className="mb-2" />
+        </div>
+        <NameForm />
         <EmailForm />
         <PasswordForm />
         <RegisterPrimaryButton />

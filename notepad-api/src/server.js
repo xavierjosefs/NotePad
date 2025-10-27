@@ -2,34 +2,37 @@ import express from "express";
 import cors from "cors"
 import jwt from "jsonwebtoken"
 import { createUser, changePassword, login, loadProfile } from "./models/user.models.js";
-import { getNotes, createNote, toggleFavorite,getNotesFavorites, getNotesArchived,softDeleteNote, restoreDeletedNote, getDeletedNotes, archiveNote, changeNoteTitle } from "./models/note.models.js";
+import { getNotes, createNote, toggleFavorite,getNotesFavorites, getNotesArchived,softDeleteNote, restoreDeletedNote, getDeletedNotes, archiveNote, changeNoteTitle, permanentDeleteNote } from "./models/note.models.js";
 import cookieParser from "cookie-parser";
 import { verifyToken } from "./middleware/verifyToken.js";
 import { verifyUser } from "./middleware/verifyUser.js";
-
+import bodyParser from "body-parser";
 
 const app = express();
+
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+
 app.use(express.json());
 app.use(cors({
   origin: "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
 app.use(cookieParser());
 
 app.post("/register", async (req, res) => {
-  
-  const { email, password , name} = req.body ?? {};
-  if (!email || !password || !name) return res.status(400).json({ error: "INVALID_INPUT" });
-
   try {
-    const user = await createUser(email, password, name);
-    return res.status(201).json({user});
-  } catch (e) {
-    const code = e.message === "EMAIL_TAKEN" ? 409 : 400;
-    return res.status(code).json({ error: e.message });
+    const { email, password, name, avatar } = req.body;
+    const userId = await createUser(email, password, name, avatar);
+    res.status(201).json({ id: userId });
+  } catch (err) {
+    console.error("❌ Register error:", err);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
+
 
 app.get("/", verifyUser, (req, res) => {
   return res.sendStatus(200)
@@ -270,15 +273,24 @@ app.put("/api/note/restore", verifyToken, async (req, res) => {
 app.delete("/api/note/permanent-delete", verifyToken, async (req, res) => {
   try {
     const { noteId } = req.body ?? {};
-    const result = await pool.query(`DELETE FROM notes WHERE id = $1`, [noteId]);
-    if (result.rowCount === 0) return res.status(404).json({ error: "NOTE_NOT_FOUND" });
-    res.sendStatus(200);
+
+    if (!noteId) {
+      return res.status(400).json({ error: "INVALID_INPUT" });
+    }
+
+    const deleted = await permanentDeleteNote(noteId);
+
+    if (deleted.rowCount === 0) {
+      return res.status(404).json({ error: "NOTE_NOT_FOUND" });
+    }
+
+    console.log("🗑️ Permanently deleted:", deleted.rows[0]);
+    return res.sendStatus(200);
   } catch (err) {
-    console.error("Error deleting permanently:", err);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
+    console.error("❌ Error deleting permanently:", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
-
 
 
 app.use((req, res) => {

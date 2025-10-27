@@ -144,6 +144,21 @@ export async function softDeleteNote(userId, noteId) {
   return result.rows[0] || null;
 }
 
+// permanent delete
+export async function permanentDeleteNote(noteId) {
+  try {
+    const result = await pool.query(
+      `DELETE FROM notes WHERE id = $1 RETURNING id`,
+      [noteId]
+    );
+    return result; // devolvemos el objeto completo (no solo una fila)
+  } catch (err) {
+    console.error("❌ SQL Error deleting permanently:", err);
+    throw err;
+  }
+}
+
+
 //Restaurar una nota eliminada
 export async function restoreDeletedNote(userId, noteId) {
   const result = await pool.query(

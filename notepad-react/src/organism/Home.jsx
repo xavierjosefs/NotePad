@@ -15,6 +15,7 @@ export default function Home() {
   const [noteFavorite, setNoteFavorite] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [avatar, setAvatar] = useState(null);
   const [showFavorites, setShowFavorites] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [activeSection, setActiveSection] = useState("all");
@@ -60,7 +61,8 @@ export default function Home() {
             withCredentials: true,
           });
           setName(profileRes.data[0].full_name || "")
-          setEmail(profileRes.data[0].email || "")         
+          setEmail(profileRes.data[0].email || "")
+          setAvatar(profileRes.data[0].avatar || null)     
           
         } else {
           setAuth(false);
@@ -361,6 +363,7 @@ const filteredNotes = useMemo(() => {
       <Sidebar
         userName={name}
         userEmail={email}
+        avatar={avatar}
         noteLength={noteLength}
         favCont={noteFavorite}
         archCont={noteArchived}
