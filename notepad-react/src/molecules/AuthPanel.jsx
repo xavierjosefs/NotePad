@@ -29,8 +29,8 @@ export default function AuthPanel({ card = false }) {
 
     try {
       const baseURL = import.meta.env.VITE_API_URL;
-      const res = await axios.post(`${baseURL}/login`, { email, password });
-      console.log(res);
+      const res = await axios.post(`${baseURL}/login`, { email, password }, { withCredentials: true });
+      console.log("Login response:", res)
       if(res.status === 200){
         navigate("/")
       }
