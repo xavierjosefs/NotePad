@@ -28,7 +28,7 @@ export default function AuthPanel({ card = false }) {
     }
 
     try {
-      const baseURL = "http://localhost:8000";
+      const baseURL = import.meta.env.VITE_API_URL;
       const res = await axios.post(`${baseURL}/login`, { email, password });
       console.log(res);
       if(res.status === 200){

@@ -27,7 +27,7 @@ export default function Home() {
 
 
   axios.defaults.withCredentials = true;
-  const baseURL = "http://localhost:8000";
+  const baseURL = import.meta.env.VITE_API_URL ||"http://localhost:8000" ;
 
   useEffect(() => {
     const fetchUser = async () => {
