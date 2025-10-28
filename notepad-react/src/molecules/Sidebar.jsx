@@ -8,7 +8,7 @@ import { Search, Settings, Star, Trash2, Clock, Tag, Folder, LogOut } from "luci
  const baseURL = import.meta.env.VITE_API_URL ||"http://localhost:8000" ;
 export default function Sidebar(props) {
 
-  const handleDelete = async () => {
+  const handleLogout = async () => {
   try {
     const res = await axios.get(`${baseURL}/logout`, {
       withCredentials: true, 
@@ -41,7 +41,7 @@ export default function Sidebar(props) {
           <div className="text-sm font-semibold">{props.userName || "User Name"}</div>
           <div className="text-xs text-neutral-500 truncate">{props.userEmail || "user@mail.com"}</div>
         </div>
-        <IconButton className="ml-auto" aria-label="Logout" onClick={handleDelete}>
+        <IconButton className="ml-auto" aria-label="Logout" onClick={handleLogout}>
           <LogOut size={16} />
         </IconButton>
       </div>
