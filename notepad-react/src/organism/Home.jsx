@@ -391,6 +391,7 @@ const filteredNotes = useMemo(() => {
         onCreate={() => setShowModal(true)}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        className="w-full md:w-[60%] lg:w-[65%]"
       />
       <PreviewColumn
         note={selected}
@@ -401,6 +402,7 @@ const filteredNotes = useMemo(() => {
         onRestore={handleRestore}
         onPermanentDelete={handlePermanentDelete}
         activeSection={activeSection}
+        className="md:flex md:w-[40%] lg:w-[35%]"
       />
 
       <CreateNoteModal

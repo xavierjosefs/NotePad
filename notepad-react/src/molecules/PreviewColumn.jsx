@@ -37,7 +37,7 @@ export default function PreviewColumn(props) {
 
   if (!note) {
     return (
-      <section className="hidden xl:flex xl:w-[34rem] shrink-0 bg-white/60 backdrop-blur items-center justify-center text-neutral-400">
+      <section className="hidden md:flex md:w-[28rem] lg:w-[30rem] xl:w-[34rem] shrink-0 bg-white/60 backdrop-blur items-center justify-center text-neutral-400">
         Select a note to preview
       </section>
     );
@@ -45,7 +45,7 @@ export default function PreviewColumn(props) {
 
   return (
     <>
-      <section className="hidden xl:flex xl:w-[34rem] shrink-0 flex-col bg-white">
+      <section className="hidden md:flex md:w-[28rem] lg:w-[30rem] xl:w-[34rem] shrink-0 flex-col bg-white">
         <div className="h-14 px-6 border-b border-neutral-200 flex items-center justify-between">
           <div className="font-semibold">{note.title}</div>
 
