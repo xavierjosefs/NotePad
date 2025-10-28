@@ -41,23 +41,35 @@ app.use(cookieParser());
 const isProd = process.env.NODE_ENV === "production";
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.CORS_ORIGIN, 
-  process.env.CORS_ORIGIN_ALT, 
+  process.env.FRONTEND_URL,, 
 ].filter(Boolean);
 
-app.use(
-  cors({
-    origin(origin, cb) {
-      if (!origin) return cb(null, true);
-      if (allowedOrigins.includes(origin)) return cb(null, true);
-      return cb(new Error(`Origin not allowed: ${origin}`));
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin(origin, cb) {
+    // Permite llamadas desde Postman/SSR (sin origin)
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error("CORS_NOT_ALLOWED"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+// Preflight
+app.options("*", cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
+app.use(cookieParser());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // ---------- Rutas ----------
+
+app.get("/healthz", (req, res) => res.status(200).send("ok"));
+
 app.post("/register", async (req, res) => {
   try {
     const { email, password, name, avatar } = req.body;
