@@ -111,30 +111,40 @@ app.get("/logout", (req, res) => {
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body ?? {};
-  if (!email || !password)
+  console.log("🧩 LOGIN attempt:", { email });
+
+  if (!email || !password) {
+    console.log("⚠️ Missing fields in login");
     return res.status(400).json({ error: "INVALID_INPUT" });
+  }
 
   try {
     const user = await login(email, password);
+    console.log("✅ User found:", user?.user?.email);
+
+    if (!process.env.SECRET_KEY) {
+      console.error("❌ SECRET_KEY not defined in environment!");
+      return res.status(500).json({ error: "SERVER_CONFIG_ERROR" });
+    }
+
     const token = jwt.sign(
       { id: user.user.id, email: user.user.email, name: user.user.name },
-      process.env.SECRET_KEY,
+      process.env.SECRET_KEY.toString(),
       { expiresIn: "15m" }
     );
 
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: isProd ? "none" : "lax",
       secure: isProd,
-      maxAge: 15 * 60 * 1000,
+      maxAge: 900 * 1000,
     });
 
     return res.sendStatus(200);
   } catch (e) {
-    const msg = e?.message ?? "INTERNAL_ERROR";
-    const code =
-      msg === "EMAIL_NOT_FOUND" || msg === "PASSWORD_INCORRECT" ? 401 : 500;
-    return res.status(code).json({ error: msg });
+    console.error("❌ LOGIN error:", e.message);
+    return res.status(500).json({ error: e.message || "INTERNAL_ERROR" });
   }
 });
 
