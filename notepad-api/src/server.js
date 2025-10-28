@@ -44,16 +44,23 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,, 
 ].filter(Boolean);
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
 app.use(cors({
-  origin(origin, cb) {
-    // Permite llamadas desde Postman/SSR (sin origin)
-    if (!origin) return cb(null, true);
-    if (allowedOrigins.includes(origin)) return cb(null, true);
-    return cb(new Error("CORS_NOT_ALLOWED"));
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+
+    const allowed =
+      origin === FRONTEND_URL ||
+      origin.endsWith(".vercel.app") ||
+      origin.includes("localhost");
+
+    if (allowed) return callback(null, true);
+    console.warn("🚫 CORS blocked for origin:", origin);
+    return callback(new Error("CORS_NOT_ALLOWED"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
 
