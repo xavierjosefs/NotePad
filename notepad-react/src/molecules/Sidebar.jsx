@@ -5,7 +5,7 @@ import axios from "axios";
 
 import { Search, Settings, Star, Trash2, Clock, Tag, Folder, LogOut } from "lucide-react";
 
- const baseURL = import.meta.env.VITE_API_URL ||"http://localhost:8000" ;
+const baseURL = import.meta.env.VITE_API_URL ||"http://localhost:8000" ;
 export default function Sidebar(props) {
 
   const handleLogout = async () => {

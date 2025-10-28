@@ -39,29 +39,36 @@ app.use(cookieParser());
 
 // 3) CORS con lista blanca dinámica
 const isProd = process.env.NODE_ENV === "production";
-const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL,, 
-].filter(Boolean);
 
 // Configuración CORS completa
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
-// Configurar CORS
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin) return callback(null, true);
-    const allowed =
-      origin === FRONTEND_URL ||
-      origin.endsWith(".vercel.app") ||
-      origin.includes("localhost");
-    if (allowed) return callback(null, true);
-    console.warn("🚫 CORS blocked for origin:", origin);
-    return callback(new Error("CORS_NOT_ALLOWED"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-}));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://fast-notes.vercel.app",
+  "https://fast-notes-git-main-xaviers-projects-89dc2232.vercel.app"
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Permitir sin origin (por ejemplo, Postman o SSR interno)
+      if (!origin) return callback(null, true);
+
+      // Permitir todos los subdominios de Vercel
+      const isVercelSubdomain = /\.vercel\.app$/.test(new URL(origin).hostname);
+
+      if (allowedOrigins.includes(origin) || isVercelSubdomain) {
+        callback(null, true);
+      } else {
+        console.warn("🚫 CORS bloqueado para:", origin);
+        callback(new Error("CORS_NOT_ALLOWED"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
 // ✅ Manejo de preflight universal (Express 5 safe)
 app.use((req, res, next) => {
