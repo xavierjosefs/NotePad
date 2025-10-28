@@ -47,9 +47,10 @@ const allowedOrigins = [
 // Configuración CORS completa
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
+// Configurar CORS
 app.use(cors({
   origin(origin, callback) {
-    if (!origin) return callback(null, true); // Permitir Postman, etc.
+    if (!origin) return callback(null, true);
     const allowed =
       origin === FRONTEND_URL ||
       origin.endsWith(".vercel.app") ||
@@ -62,12 +63,16 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
 
-app.options("/.*/", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  return res.sendStatus(204);
+// ✅ Manejo de preflight universal (Express 5 safe)
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    return res.sendStatus(204);
+  }
+  next();
 });
 
 
