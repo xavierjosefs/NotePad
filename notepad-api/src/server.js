@@ -44,17 +44,16 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,, 
 ].filter(Boolean);
 
+// Configuración CORS completa
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin) return callback(null, true);
-
+    if (!origin) return callback(null, true); // Permitir Postman, etc.
     const allowed =
       origin === FRONTEND_URL ||
       origin.endsWith(".vercel.app") ||
       origin.includes("localhost");
-
     if (allowed) return callback(null, true);
     console.warn("🚫 CORS blocked for origin:", origin);
     return callback(new Error("CORS_NOT_ALLOWED"));
@@ -62,6 +61,14 @@ app.use(cors({
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
+
+app.options("*", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  return res.sendStatus(204);
+});
 
 
 app.use(cookieParser());
