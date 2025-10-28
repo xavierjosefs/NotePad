@@ -10,12 +10,27 @@ import bodyParser from "body-parser";
 
 const app = express();
 
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+// 1) Proxy para cookies secure detrás de Render/Heroku/Nginx
+app.set("trust proxy", 1);
+
+// 2) Body parser (SOLO express.json). Sube el límite para avatar base64.
+app.use(express.json({ limit: "10mb" }));
+app.use(cookieParser())
+
+// 3) CORS con lista blanca dinámica
+const isProd = process.env.NODE_ENV === "production";
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CORS_ORIGIN,
+  process.env.CORS_ORIGIN_ALT,
+].filter(Boolean);
 
 app.use(express.json());
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: [
+    "http://localhost:5173",
+    "https://<tu-proyecto>.vercel.app"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -58,10 +73,11 @@ app.post("/login", async (req, res) => {
     const user = await login(email, password);
     const token = jwt.sign({ id: user.user.id, email: user.user.email, name: user.user.name },process.env.SECRET_KEY.toString(),{ expiresIn: "15m" });
     
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      httpOnly: true, // en https true en local false
+      sameSite: isProd ? "none" : "lax",
+      secure: isProd,
       maxAge: 900 * 1000,
     });
 
