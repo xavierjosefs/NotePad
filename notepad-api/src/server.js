@@ -56,11 +56,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-// Preflight
-app.options("*", cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
 
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
