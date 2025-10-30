@@ -1,5 +1,6 @@
 import Input from "../atoms/Input";
 import FormText from "../atoms/FormText";
+import  Link  from "../atoms/HyperLink";
 
 export default function Remenber() {
   return (
@@ -12,6 +13,11 @@ export default function Remenber() {
         />
         <FormText text="Remember me" className="text-gray-700" />
       </label>
+      <Link
+        text="Forgot your password?"
+        click="/ForgotPassword"
+        className="font-medium text-blue-500 hover:underline"
+      />
     </div>
   );
 }

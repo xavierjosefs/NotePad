@@ -1,7 +1,13 @@
-export default function Link(props) {
+// src/components/atoms/HyperLink.jsx
+import { Link } from "react-router-dom";
+
+export default function HyperLink({ text, click, className }) {
   return (
-    <a className={props.className} Link={props.Link}>
-      {props.text}
-    </a>
+    <Link
+      to={click}
+      className={className}
+    >
+      {text}
+    </Link>
   );
 }

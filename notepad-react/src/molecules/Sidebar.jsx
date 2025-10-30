@@ -28,9 +28,6 @@ export default function Sidebar(props) {
       <div className="px-4 pt-4 pb-3 flex items-center gap-2">
         <div className="h-8 w-8 rounded-xl bg-neutral-100 ring-1 ring-neutral-200 grid place-items-center font-semibold">Q</div>
         <div className="text-lg font-semibold tracking-tight">QuickNote</div>
-        <div className="ml-auto flex items-center gap-2">
-          <IconButton aria-label="Settings"><Settings size={18} /></IconButton>
-        </div>
       </div>
 
       {/* Profile */}

@@ -6,6 +6,8 @@ import NotesColumn from "../molecules/NotesColumn";
 import PreviewColumn from "../molecules/PreviewColumn";
 import CreateNoteModal from "../molecules/CreateNoteModal";
 
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8000" ;
+
 export default function Home() {
   const navigate = useNavigate();
   const [auth, setAuth] = useState(null);
@@ -20,14 +22,13 @@ export default function Home() {
   const [showArchived, setShowArchived] = useState(false);
   const [activeSection, setActiveSection] = useState("all");
   const [showModal, setShowModal] = useState(false);
-  const [noteArchived, setNoteArchived] = useState(0);       // archivadas
+  const [noteArchived, setNoteArchived] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [noteDeleted, setNoteDeleted] = useState(0);
   const [showDeleted, setShowDeleted] = useState(false);
 
 
   axios.defaults.withCredentials = true;
-  const baseURL = import.meta.env.VITE_API_URL ||"http://localhost:8000" ;
 
   useEffect(() => {
     const fetchUser = async () => {

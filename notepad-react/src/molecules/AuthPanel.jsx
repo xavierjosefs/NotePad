@@ -9,10 +9,11 @@ import axios from "axios";
 
 export default function AuthPanel({ card = false }) {
   const base = "w-full max-w-md space-y-4";
-  const cardStyles =
-    "rounded-2xl bg-white p-6 md:p-8 shadow-sm ring-1 ring-gray-200";
+  const cardStyles = "rounded-2xl bg-white p-6 md:p-8 shadow-sm ring-1 ring-gray-200";
+
   const navigate = useNavigate();
   axios.defaults.withCredentials = true;
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -28,7 +29,7 @@ export default function AuthPanel({ card = false }) {
     }
 
     try {
-      const baseURL = import.meta.env.VITE_API_URL;
+      const baseURL = import.meta.env.VITE_API_URL ||"http://localhost:8000" ;
       const res = await axios.post(`${baseURL}/login`, { email, password }, { withCredentials: true });
       console.log("Login response:", res)
       if(res.status === 200){

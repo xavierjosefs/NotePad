@@ -3,12 +3,17 @@ import express from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import passwordGenerator from "generate-otp"
 
 import {
+  getUsersByEmail,
   createUser,
-  changePassword,
   login,
   loadProfile,
+  setNewPasswordForUser,
+  verifyPasswordResetCodeByEmail,
+  upsertPasswordResetCodeByEmail
+
 } from "./models/user.models.js";
 
 import {
@@ -27,6 +32,7 @@ import {
 
 import { verifyToken } from "./middleware/verifyToken.js";
 import { verifyUser } from "./middleware/verifyUser.js";
+import { sendEmail } from "./middleware/emailSend.js";
 
 const app = express();
 
@@ -151,22 +157,65 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/changepassword", async (req, res) => {
-  const { email, newPassword } = req.body;
+app.post("/changepassemail", async (req, res) => {
   try {
-    const id = await changePassword(email, newPassword);
-    return res.status(200).json({ id });
-  } catch (e) {
-    const msg = e?.message ?? "INTERNAL_ERROR";
-    const code =
-      msg === "USER_NOT_FOUND"
-        ? 404
-        : msg === "SAME_PASSWORD"
-        ? 409
-        : msg === "INVALID_INPUT"
-        ? 400
-        : 500;
+    const { email } = req.body || {};
+    if (!email) return res.status(400).json({ error: "INVALID_INPUT" });
+
+    const { code, expiresAt } = await upsertPasswordResetCodeByEmail(email, 5);
+    await sendEmail(email, "Password Reset Code", `Your code is: ${code} (expires at ${expiresAt.toISOString()})`);
+
+    return res.status(200).json({ message: "Verification code sent" });
+
+  } catch (err) {
+    const msg = err.message || "INTERNAL_ERROR";
+    const code = msg === "EMAIL_NOT_FOUND" ? 404 : 500;
     return res.status(code).json({ error: msg });
+  }
+});
+
+app.post("/verifyotp", async (req, res) => {
+  try {
+    const { email, code } = req.body || {};
+    if (!email || !code) return res.status(400).json({ error: "INVALID_INPUT" });
+
+    const { userId } = await verifyPasswordResetCodeByEmail(email, code);
+    const resetToken = jwt.sign({ userId }, process.env.SECRET_KEY.toString(), { expiresIn: "10m" });
+
+    const isProd = process.env.NODE_ENV === "production";
+    res.cookie("resetToken", resetToken, {
+      httpOnly: true,
+      sameSite: isProd ? "none" : "lax",
+      secure: isProd,
+      maxAge: 10 * 60 * 1000,
+      path: "/",
+    });
+
+    return res.status(200).json({ message: "CODE_VERIFIED"});
+  } catch (err) {
+    const msg = err.message || "INTERNAL_ERROR";
+    const map = { EMAIL_NOT_FOUND: 404, CODE_NOT_FOUND: 404, CODE_EXPIRED: 410, INVALID_CODE: 401 };
+    return res.status(map[msg] ?? 500).json({ error: msg });
+  }
+});
+
+app.post("/resetpassword", async (req, res) => {
+  try {
+    const { newPassword } = req.body || {};
+    const resetToken = req.cookies.resetToken;
+    if (!resetToken || !newPassword) return res.status(400).json({ error: "INVALID_INPUT" });
+
+    let payload;
+    try {
+      payload = jwt.verify(resetToken, process.env.SECRET_KEY.toString());
+    } catch {
+      return res.status(401).json({ error: "INVALID_OR_EXPIRED_TOKEN" });
+    }
+
+    await setNewPasswordForUser(payload.userId, newPassword);
+    return res.status(200).json({ message: "PASSWORD_UPDATED" });
+  } catch (err) {
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
 
@@ -321,6 +370,10 @@ app.delete("/api/note/permanent-delete", verifyToken, async (req, res) => {
     return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
+
+
+
+
 
 // 404
 app.use((req, res) => {

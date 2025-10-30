@@ -3,6 +3,8 @@ import Home from "./organism/Home"
 import Register from "./organism/Register";
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from "./organism/Login";
+import ForgotPassword from "./organism/ForgotPassword";
+import ChangePassword from "./organism/ChangePassword";
 
 export default function App() {
     return (
@@ -12,6 +14,8 @@ export default function App() {
                 {/* <Route path="*" element={<Navigate to="/login" replace />} />? */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgotpassword" element={<ForgotPassword />} />
+                <Route path="/changepassword" element={<ChangePassword />} />
             </Routes>
         </BrowserRouter>
     )
