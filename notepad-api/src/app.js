@@ -33,34 +33,24 @@ const allowedOrigins = [
   "http://localhost:5173",
 ];
 
-// ✅ Middleware CORS (debe ir antes de las rutas)
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-      return callback(null, true);
-    }
-    console.warn("🚫 CORS blocked for origin:", origin);
-    return callback(new Error("CORS_NOT_ALLOWED"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+// ✅ Middleware principal
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app"))) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
 
-// ✅ Manejador universal de preflight
-app.options("*", cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-      return callback(null, true);
-    }
-    return callback(new Error("CORS_NOT_ALLOWED"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  // ✅ Importante: responder manualmente a OPTIONS (preflight)
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 
 // ---------- Rutas ----------
