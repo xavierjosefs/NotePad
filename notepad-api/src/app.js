@@ -33,20 +33,22 @@ const allowedOrigins = [
   "http://localhost:5173",
 ];
 
-// ✅ Middleware principal
+// Middleware manual CORS
 app.use((req, res, next) => {
   const origin = req.headers.origin;
+
+  // Permitir localhost, FRONTEND_URL y cualquier *.vercel.app
   if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app"))) {
-    res.header("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Origin", origin);
   }
 
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
-  // ✅ Importante: responder manualmente a OPTIONS (preflight)
+  // Responder preflight inmediatamente
   if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
+    return res.status(204).end();
   }
 
   next();
